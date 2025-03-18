@@ -1,13 +1,17 @@
 resource "google_iam_principal_access_boundary_policy" "pab_policy" {
-  provider = google-beta
   organization   = "{{index $.TestEnvVars "org_id"}}"
   location       = "global"
   display_name   = "{{index $.Vars "display_name"}}"
   principal_access_boundary_policy_id = "{{index $.Vars "pab_policy_id"}}"
 }
 
+resource "time_sleep" "wait_60_seconds" {
+  create_duration = "60s"
+  depends_on = [google_iam_principal_access_boundary_policy.pab_policy]
+}
+
 resource "google_iam_organizations_policy_binding" "{{$.PrimaryResourceId}}" {
-  provider = google-beta
+  depends_on = [time_sleep.wait_60_seconds]
   organization   = "{{index $.TestEnvVars "org_id"}}"
   location       = "global"
   display_name   = "{{index $.Vars "display_name"}}"

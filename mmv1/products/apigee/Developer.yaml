@@ -20,11 +20,10 @@ references:
     "Creating a developer": "https://cloud.google.com/apigee/docs/api-platform/publish/adding-developers-your-api-product"
   api: "https://cloud.google.com/apigee/docs/reference/apis/apigee/rest/v1/organizations.developers"
 docs:
-base_url: "developers"
+base_url: "{{org_id}}/developers"
 self_link: "{{org_id}}/developers/{{email}}"
-create_url: "{{org_id}}/developers"
 delete_url: "{{org_id}}/developers/{{email}}"
-update_mask: true
+update_mask: false
 immutable: false
 import_format:
   - "{{org_id}}/developers/{{email}}"
@@ -44,6 +43,7 @@ examples:
       billing_account: "BILLING_ACCT"
     exclude_docs: true
     skip_vcr: true
+    external_providers: ["time"]
   - name: "apigee_developer_with_attributes"
     vars:
       instance_name: "my-instance"
@@ -56,6 +56,7 @@ examples:
       billing_account: "BILLING_ACCT"
     exclude_docs: true
     skip_vcr: true
+    external_providers: ["time"]
 parameters:
   - name: "orgId"
     type: String

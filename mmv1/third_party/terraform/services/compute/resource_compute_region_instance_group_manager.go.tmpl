@@ -162,6 +162,12 @@ func ResourceComputeRegionInstanceGroupManager() *schema.Resource {
 				Description: `An optional textual description of the instance group manager.`,
 			},
 
+			"instance_group_manager_id": {
+				Type:        schema.TypeInt,
+				Computed:    true,
+				Description: `The unique identifier number for the resource. This identifier is defined by the server.`,
+			},
+
 			"fingerprint": {
 				Type:        schema.TypeString,
 				Computed:    true,
@@ -320,7 +326,6 @@ func ResourceComputeRegionInstanceGroupManager() *schema.Resource {
 				},
 			},
 
-			{{- if ne $.TargetVersionName "ga" }}
 			"standby_policy": {
 				Type:        schema.TypeList,
 				Computed:    true,
@@ -361,7 +366,6 @@ func ResourceComputeRegionInstanceGroupManager() *schema.Resource {
 				Optional:    true,
 				Description: `The target number of stopped instances for this managed instance group.`,
 			},
-			{{- end }}
 
 			"update_policy": {
 				Type:        schema.TypeList,
@@ -665,11 +669,9 @@ func resourceComputeRegionInstanceGroupManagerCreate(d *schema.ResourceData, met
 		TargetPools:                 tpgresource.ConvertStringSet(d.Get("target_pools").(*schema.Set)),
 		AutoHealingPolicies:         expandAutoHealingPolicies(d.Get("auto_healing_policies").([]interface{})),
 		Versions:                    expandVersions(d.Get("version").([]interface{})),
-		{{- if ne $.TargetVersionName "ga" }}
 		StandbyPolicy:               expandStandbyPolicy(d),
 		TargetSuspendedSize:         int64(d.Get("target_suspended_size").(int)),
 		TargetStoppedSize:           int64(d.Get("target_stopped_size").(int)),
-		{{- end }}
 		InstanceFlexibilityPolicy:   expandInstanceFlexibilityPolicy(d),
 		UpdatePolicy:                expandRegionUpdatePolicy(d.Get("update_policy").([]interface{})),
 		InstanceLifecyclePolicy:     expandInstanceLifecyclePolicy(d.Get("instance_lifecycle_policy").([]interface{})),
@@ -826,6 +828,9 @@ func resourceComputeRegionInstanceGroupManagerRead(d *schema.ResourceData, meta 
 	if err := d.Set("description", manager.Description); err != nil {
 		return fmt.Errorf("Error setting description: %s", err)
 	}
+	if err := d.Set("instance_group_manager_id", manager.Id); err != nil {
+		return fmt.Errorf("Error setting description: %s", err)
+	}
 	if err := d.Set("project", project); err != nil {
 		return fmt.Errorf("Error setting project: %s", err)
 	}
@@ -863,7 +868,6 @@ func resourceComputeRegionInstanceGroupManagerRead(d *schema.ResourceData, meta 
 	if err := d.Set("version", flattenVersions(manager.Versions)); err != nil {
 		return err
 	}
-	{{- if ne $.TargetVersionName "ga" }}
 	if err = d.Set("standby_policy", flattenStandbyPolicy(manager.StandbyPolicy)); err != nil {
 		return fmt.Errorf("Error setting standby_policy in state: %s", err.Error())
 	}
@@ -873,7 +877,6 @@ func resourceComputeRegionInstanceGroupManagerRead(d *schema.ResourceData, meta 
 	if err := d.Set("target_stopped_size", manager.TargetStoppedSize); err != nil {
 		return fmt.Errorf("Error setting target_stopped_size: %s", err)
 	}
-	{{- end }}
 	if err := d.Set("instance_flexibility_policy", flattenInstanceFlexibilityPolicy(manager.InstanceFlexibilityPolicy)); err != nil {
 		return err
 	}
@@ -968,7 +971,6 @@ func resourceComputeRegionInstanceGroupManagerUpdate(d *schema.ResourceData, met
 		change = true
 	}
 
-	{{- if ne $.TargetVersionName "ga" }}
 	if d.HasChange("standby_policy") {
 		updatedManager.StandbyPolicy = expandStandbyPolicy(d)
 		change = true
@@ -985,7 +987,6 @@ func resourceComputeRegionInstanceGroupManagerUpdate(d *schema.ResourceData, met
 		updatedManager.ForceSendFields = append(updatedManager.ForceSendFields, "TargetStoppedSize")
 		change = true
 	}
-	{{- end }}
 
 	if d.HasChange("update_policy") {
 		updatedManager.UpdatePolicy = expandRegionUpdatePolicy(d.Get("update_policy").([]interface{}))
